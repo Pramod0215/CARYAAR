@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="330.923" height="284.235" viewBox="0 0 330.923 284.235">
+  <g id="Group_4939" data-name="Group 4939" transform="translate(-808.51 -1189.231)">
+    <g id="Group_4938" data-name="Group 4938">
+      <g id="Group_4926" data-name="Group 4926" transform="translate(824 1189.231)">
+        <path id="Path_1063" data-name="Path 1063" d="M234.964,734.549c-11.731,3.3-7.06,84.606,0,84.806s259.213,3.824,267.566,0,14.052-80.287,4.507-84.806S257.637,727.945,234.964,734.549Z" transform="translate(-227.812 -730.342)" fill="#addce5"/>
+      </g>
+      <g id="Group_4927" data-name="Group 4927" transform="translate(907.747 1300.239)">
+        <path id="Path_1063-2" data-name="Path 1063" d="M233.643,733.772c-9.564,2.688-5.756,68.973,0,69.136s211.319,3.117,218.129,0,11.455-65.453,3.674-69.136S252.127,728.388,233.643,733.772Z" transform="translate(-227.812 -730.342)" fill="#addce5"/>
+      </g>
+      <g id="Group_4928" data-name="Group 4928" transform="translate(808.51 1399.478)">
+        <path id="Path_1063-3" data-name="Path 1063" d="M233.643,733.772c-9.564,2.688-5.756,68.973,0,69.136s211.319,3.117,218.129,0,11.455-65.453,3.674-69.136S252.127,728.388,233.643,733.772Z" transform="translate(-227.812 -730.342)" fill="#addce5"/>
+      </g>
+      <g id="Group_4929" data-name="Group 4929" transform="translate(960.433 1221.159) rotate(180)" opacity="0.456">
+        <path id="Path_1063-4" data-name="Path 1063" d="M2.717.527c-4.456.413-2.682,10.607,0,10.632s98.454.479,101.627,0S109.681,1.094,106.055.527,11.328-.3,2.717.527Z" transform="translate(0 0)" fill="#4a4a4a"/>
+      </g>
+      <g id="Group_4930" data-name="Group 4930" transform="translate(1018.972 1326.268) rotate(180)" opacity="0.456">
+        <path id="Path_1063-5" data-name="Path 1063" d="M2.215.43C-1.418.767.029,9.077,2.215,9.1s80.263.391,82.85,0S89.415.892,86.46.43,9.235-.245,2.215.43Z" transform="translate(0 0)" fill="#4a4a4a"/>
+      </g>
+      <g id="Group_4931" data-name="Group 4931" transform="translate(919.735 1425.506) rotate(180)" opacity="0.456">
+        <path id="Path_1063-6" data-name="Path 1063" d="M2.215.43C-1.418.767.029,9.077,2.215,9.1s80.263.391,82.85,0S89.415.892,86.46.43,9.235-.245,2.215.43Z" transform="translate(0 0)" fill="#4a4a4a"/>
+      </g>
+      <rect id="Rectangle_505" data-name="Rectangle 505" width="230.122" height="6.46" rx="3.23" transform="translate(852.474 1232.026)" fill="#fff" opacity="0.529"/>
+      <rect id="Rectangle_506" data-name="Rectangle 506" width="188.262" height="5.266" rx="2.633" transform="translate(930.892 1335.677)" fill="#fff" opacity="0.529"/>
+      <rect id="Rectangle_507" data-name="Rectangle 507" width="187.604" height="5.266" rx="2.633" transform="translate(831.873 1434.808)" fill="#fff" opacity="0.529"/>
+      <rect id="Rectangle_508" data-name="Rectangle 508" width="107.39" height="16.149" rx="6" transform="translate(970.361 1248.982)" fill="#68de6e" opacity="0.593"/>
+      <rect id="Rectangle_509" data-name="Rectangle 509" width="87.548" height="13.165" rx="6" transform="translate(1026.998 1350.817)" fill="#68de6e" opacity="0.593"/>
+      <rect id="Rectangle_510" data-name="Rectangle 510" width="87.548" height="13.165" rx="6" transform="translate(926.004 1449.289)" fill="#68de6e" opacity="0.593"/>
+      <text id="Quote" transform="translate(1030.112 1215.765)" fill="#fff" font-size="12" font-family="Aleo-Bold, Aleo" font-weight="700" letter-spacing="0.01em"><tspan x="0" y="0">Quote</tspan></text>
+      <text id="Quote-2" data-name="Quote" transform="translate(1082.291 1322.979)" fill="#fff" font-size="11" font-family="Aleo-Bold, Aleo" font-weight="700" letter-spacing="0.01em"><tspan x="0" y="0">Quote</tspan></text>
+      <text id="Quote-3" data-name="Quote" transform="translate(984.589 1422.769)" fill="#fff" font-size="11" font-family="Aleo-Bold, Aleo" font-weight="700" letter-spacing="0.01em"><tspan x="0" y="0">Quote</tspan></text>
+    </g>
+  </g>
+</svg>

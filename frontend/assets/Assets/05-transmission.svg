@@ -1,0 +1,10 @@
+<svg id="_05-transmission" data-name="05-transmission" xmlns="http://www.w3.org/2000/svg" width="119.041" height="129" viewBox="0 0 119.041 129">
+  <g id="_05-transmission-2" data-name="05-transmission" transform="translate(119.041 128.302) rotate(180)">
+    <path id="Path_173" data-name="Path 173" d="M99.029,28.5H69.32V0H49.515V28.5H19.806V0H0V38a9.708,9.708,0,0,0,9.9,9.5H49.515V76H69.32V47.5H99.029V76h19.806V0H99.029Z" transform="translate(0 26.275)" fill="#4a4a4a"/>
+    <circle id="Ellipse_7" data-name="Ellipse 7" cx="10" cy="10" r="10" transform="translate(0.041 -0.699)" fill="#4a4a4a"/>
+    <ellipse id="Ellipse_18" data-name="Ellipse 18" cx="9.5" cy="10" rx="9.5" ry="10" transform="translate(50.041 -0.699)" fill="#4a4a4a"/>
+    <ellipse id="Ellipse_21" data-name="Ellipse 21" cx="9.5" cy="10" rx="9.5" ry="10" transform="translate(50.041 108.301)" fill="#4a4a4a"/>
+    <circle id="Ellipse_19" data-name="Ellipse 19" cx="10" cy="10" r="10" transform="translate(99.041 -0.699)" fill="#4a4a4a"/>
+    <circle id="Ellipse_20" data-name="Ellipse 20" cx="10" cy="10" r="10" transform="translate(99.041 108.301)" fill="#4a4a4a"/>
+  </g>
+</svg>
