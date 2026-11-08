@@ -9,6 +9,7 @@ from database import get_db
 from models import User
 from schemas import LoginRequest, TokenResponse, UserCreate, UserResponse
 from shared.config import get_settings
+from shared.events import enqueue_event
 from shared.security import create_access_token, get_current_user_id, hash_password, verify_password
 
 router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
@@ -23,6 +24,12 @@ def register(payload: UserCreate, session: Session = Depends(get_db)):
     )
     session.add(user)
     try:
+        session.flush()
+        enqueue_event(
+            session,
+            "account.registered",
+            {"user_id": str(user.id), "name": user.name, "email": user.email},
+        )
         session.commit()
     except IntegrityError as exc:
         session.rollback()

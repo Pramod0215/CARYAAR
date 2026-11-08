@@ -1,6 +1,6 @@
 # CarYAAR backend
 
-The backend is split into four independently runnable FastAPI services. All
+The backend is split into five independently runnable FastAPI services. All
 services use MySQL by default and can use separate MySQL database URLs in
 deployment.
 
@@ -25,10 +25,10 @@ Replace `JWT_SECRET_KEY` in `.env` with a random secret generated with:
 python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-Start MySQL with Docker Compose:
+Start MySQL and Kafka with Docker Compose:
 
 ```powershell
-docker compose up -d mysql
+docker compose up -d mysql kafka
 ```
 
 The default development database URL is
@@ -36,7 +36,7 @@ The default development database URL is
 creates the database and waits for MySQL health checks before reporting the
 container healthy.
 
-Start the four backend services in separate PowerShell windows, from the
+Start the five backend services in separate PowerShell windows, from the
 `backend` directory:
 
 ```powershell
@@ -44,6 +44,7 @@ python -m uvicorn main:app --app-dir auth-service --reload --port 8001
 python -m uvicorn main:app --app-dir car_service --reload --port 8002
 python -m uvicorn main:app --app-dir feedback_service --reload --port 8003
 python -m uvicorn main:app --app-dir support_service --reload --port 8004
+python -m uvicorn main:app --app-dir notification_service --reload --port 8005
 ```
 
 The car service creates four sample Audi listings the first time its listings
@@ -62,6 +63,23 @@ To enable Hugging Face support chat, set `HF_TOKEN` to a Hugging Face access
 token with inference access. `HF_MODEL_ID` selects the inference model. Ticket
 creation and feedback do not require an HF token.
 
+The authentication, car, feedback, and support services write domain events to
+a database outbox in the same transaction as each operation. Their background
+publishers retry until Kafka acknowledges those events. The notification
+service consumes the `caryaar.events` topic, stores user notifications, and
+provides authenticated list, unread-count, and mark-read APIs. Account
+registration and car listing events create in-app notifications; feedback and
+support-ticket events are routed to the configured administrator by email.
+
+Set `NOTIFICATION_ADMIN_EMAIL`, `SMTP_HOST`, and `SMTP_FROM_EMAIL` to enable
+email delivery. Configure `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`,
+`SMTP_USE_TLS`, or `SMTP_USE_SSL` to match your provider. Email delivery is
+retried when SMTP is unavailable; in-app notifications do not depend on SMTP.
+Kafka runs locally on `localhost:29092`; set `KAFKA_BOOTSTRAP_SERVERS` when
+using another broker. The notification API is available at
+`/api/v1/notifications`, `/api/v1/notifications/unread-count`, and
+`POST /api/v1/notifications/{id}/read`.
+
 Each service creates its own tables on startup. Interactive API documentation
 is available at `http://localhost:<port>/docs`; `/health` checks the database
 connection. Table creation is intended for this initial development backend;
@@ -77,10 +95,11 @@ All paths are prefixed with `/api/v1`.
 | Cars | 8002 | `GET /cars`, `GET /cars/mine`, `GET /cars/{id}`, `POST /cars`, `PUT /cars/{id}`, `DELETE /cars/{id}`, `POST /cars/{id}/image` |
 | Feedback | 8003 | `POST /feedback` |
 | Support | 8004 | `POST /support/tickets`, `POST /support/chat` |
+| Notifications | 8005 | `GET /notifications`, `GET /notifications/unread-count`, `POST /notifications/{id}/read` |
 
 Registration and login return a bearer token to API clients. The frontend keeps
 this token in a same-origin, HttpOnly, Secure-in-production cookie and uses a
-Next.js API proxy to call the four services. Listing creation, update, deletion,
+Next.js API proxy to call the services. Listing creation, update, deletion,
 and photo upload require an authenticated owner; public visitors can search and
 view active cars. Car prices are stored in INR. Search supports `search`,
 `fuel`, `location`, `min_price`, `max_price`, `offset`, and `limit`.
@@ -98,7 +117,7 @@ bounded pagination. Invalid requests return FastAPI's standard `422` response.
 ## Frontend connection
 
 In the `frontend` directory, copy `.env.local.example` to `.env.local` and set
-the four API URLs if your service addresses differ:
+the five API URLs if your service addresses differ:
 
 ```powershell
 Copy-Item .env.local.example .env.local
@@ -111,6 +130,5 @@ listing-photo uploads to the car service. Buyers can send an enquiry about a car
 to CarYAAR support. The feedback and support forms submit to their respective
 services, and support chat displays its Hugging Face response.
 
-Kafka and Redis are not current runtime dependencies. Service-owned data and
-versioned API boundaries leave room to introduce messaging, caching, or
-distributed rate limiting when those features are needed.
+The notification endpoints are available through the same-origin
+`/api/notifications/...` proxy routes and require the signed-in user's session.

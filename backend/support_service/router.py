@@ -9,6 +9,7 @@ from database import get_db
 from model import SupportChat, SupportTicket
 from schemas import ChatRequest, ChatResponse, TicketCreate, TicketResponse
 from shared.config import get_settings
+from shared.events import enqueue_event
 
 router = APIRouter(prefix="/api/v1/support", tags=["support"])
 
@@ -17,6 +18,18 @@ router = APIRouter(prefix="/api/v1/support", tags=["support"])
 def create_ticket(payload: TicketCreate, session: Session = Depends(get_db)):
     ticket = SupportTicket(**payload.model_dump())
     session.add(ticket)
+    session.flush()
+    enqueue_event(
+        session,
+        "support.ticket_created",
+        {
+            "ticket_id": str(ticket.id),
+            "name": ticket.name,
+            "email": ticket.email,
+            "topic": ticket.topic,
+            "message": ticket.message,
+        },
+    )
     session.commit()
     session.refresh(ticket)
     return ticket

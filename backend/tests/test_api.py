@@ -6,7 +6,13 @@ import unittest
 from pathlib import Path
 
 BACKEND = Path(__file__).resolve().parents[1]
-SERVICES = ("auth-service", "car_service", "feedback_service", "support_service")
+SERVICES = (
+    "auth-service",
+    "car_service",
+    "feedback_service",
+    "support_service",
+    "notification_service",
+)
 
 
 class ApiIntegrationTests(unittest.TestCase):
@@ -20,6 +26,7 @@ class ApiIntegrationTests(unittest.TestCase):
                 "CAR_DATABASE_URL": database_url,
                 "FEEDBACK_DATABASE_URL": database_url,
                 "SUPPORT_DATABASE_URL": database_url,
+                "NOTIFICATION_DATABASE_URL": database_url,
                 "HF_TOKEN": "integration-test-token",
             }
         )
@@ -81,6 +88,17 @@ def run_service_checks(service: str) -> None:
                     "password": "test-password-123",
                 },
             ).status_code == 409
+            from sqlalchemy import select
+
+            from database import SessionFactory
+            from shared.events import EventOutbox
+
+            with SessionFactory() as session:
+                assert session.scalar(
+                    select(EventOutbox.id).where(
+                        EventOutbox.event_type == "account.registered"
+                    )
+                ) is not None
             assert client.post(
                 "/api/v1/auth/login",
                 json={"email": "test@example.com", "password": "incorrect"},
@@ -236,6 +254,42 @@ def run_service_checks(service: str) -> None:
             assert chat.status_code == 200, chat.text
             assert chat.json()["answer"] == "Arrange an independent inspection."
             assert client.post("/api/v1/support/chat", json={"message": " "}).status_code == 422
+        elif service == "notification_service":
+            from uuid import uuid4
+
+            from database import SessionFactory
+            from model import Notification
+            from shared.security import create_access_token
+
+            user_id = uuid4()
+            headers = {"Authorization": f"Bearer {create_access_token(user_id)}"}
+            with SessionFactory.begin() as session:
+                notification = Notification(
+                    event_id=uuid4(),
+                    event_type="car.listing_created",
+                    recipient_user_id=user_id,
+                    title="Your car listing is live",
+                    message="Your Audi A3 listing was created.",
+                )
+                session.add(notification)
+            assert client.get("/api/v1/notifications").status_code == 401
+            unread = client.get("/api/v1/notifications/unread-count", headers=headers)
+            assert unread.json() == {"count": 1}
+            listed = client.get("/api/v1/notifications", headers=headers)
+            assert listed.status_code == 200 and len(listed.json()) == 1
+            notification_id = listed.json()[0]["id"]
+            assert client.post(
+                f"/api/v1/notifications/{notification_id}/read", headers=headers
+            ).status_code == 200
+            assert client.get(
+                "/api/v1/notifications/unread-count", headers=headers
+            ).json() == {"count": 0}
+            other_headers = {
+                "Authorization": f"Bearer {create_access_token(uuid4())}"
+            }
+            assert client.post(
+                f"/api/v1/notifications/{notification_id}/read", headers=other_headers
+            ).status_code == 404
         else:
             raise AssertionError(f"Unknown service: {service}")
 

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import CarCard from "@/components/marketplace/car-card";
 import { useAuth } from "@/features/auth/auth-context";
+import NotificationCenter from "@/features/notifications/notification-center";
 import {
   mapCarListing,
   type CarApiResponse,
@@ -316,13 +317,16 @@ export default function Marketplace() {
           </nav>
           <div className="header-actions">
             {user ? (
-              <button className="sign-in-button" onClick={() => {
-                void signOut()
-                  .then(() => showToast("You’re signed out."))
-                  .catch((error: unknown) => showToast(error instanceof Error ? error.message : "Could not sign out."));
-              }} type="button">
-                <CircleUserRound aria-hidden="true" size={16} /> Sign out
-              </button>
+              <>
+                <NotificationCenter />
+                <button className="sign-in-button" onClick={() => {
+                  void signOut()
+                    .then(() => showToast("You’re signed out."))
+                    .catch((error: unknown) => showToast(error instanceof Error ? error.message : "Could not sign out."));
+                }} type="button">
+                  <CircleUserRound aria-hidden="true" size={16} /> Sign out
+                </button>
+              </>
             ) : (
               <button className="sign-in-button" onClick={() => { setAuthMode("login"); setActionError(""); setDialog("signin"); }} type="button">
                 <CircleUserRound aria-hidden="true" size={16} /> {authLoading ? "Loading…" : "Sign in"}

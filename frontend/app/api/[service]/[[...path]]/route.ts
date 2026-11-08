@@ -5,7 +5,7 @@ const SESSION_COOKIE = "caryaar_access_token";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const UPLOAD_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.(?:jpg|png|webp)$/i;
 
-type Service = "auth" | "cars" | "feedback" | "support";
+type Service = "auth" | "cars" | "feedback" | "support" | "notifications";
 type Context = { params: Promise<{ service: string; path?: string[] }> };
 
 const serviceBases: Record<Service, string> = {
@@ -13,12 +13,14 @@ const serviceBases: Record<Service, string> = {
   cars: process.env.CAR_API_URL ?? "http://localhost:8002",
   feedback: process.env.FEEDBACK_API_URL ?? "http://localhost:8003",
   support: process.env.SUPPORT_API_URL ?? "http://localhost:8004",
+  notifications: process.env.NOTIFICATIONS_API_URL ?? "http://localhost:8005",
 };
 const servicePrefixes: Record<Service, string> = {
   auth: "/api/v1/auth",
   cars: "/api/v1/cars",
   feedback: "/api/v1/feedback",
   support: "/api/v1/support",
+  notifications: "/api/v1/notifications",
 };
 
 function isAllowedRoute(service: Service, method: string, path: string[]) {
@@ -46,7 +48,13 @@ function isAllowedRoute(service: Service, method: string, path: string[]) {
     (service === "feedback" && method === "POST" && route === "") ||
     (service === "support" &&
       method === "POST" &&
-      ["chat", "tickets"].includes(route))
+      ["chat", "tickets"].includes(route)) ||
+    (service === "notifications" &&
+      ((method === "GET" && (route === "" || route === "unread-count")) ||
+        (method === "POST" &&
+          path.length === 2 &&
+          UUID_PATTERN.test(path[0]) &&
+          path[1] === "read")))
   );
 }
 

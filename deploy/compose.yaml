@@ -1,0 +1,193 @@
+name: caryaar
+
+x-backend-environment: &backend-environment
+  DATABASE_URL: mysql+pymysql://${MYSQL_USER:-caryaar}:${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the deployment .env file}@mysql:3306/${MYSQL_DATABASE:?Set MYSQL_DATABASE in the deployment .env file}?charset=utf8mb4
+  JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in the deployment .env file}
+  FRONTEND_ORIGINS: https://${DOMAIN:?Set DOMAIN in the deployment .env file}
+  KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  KAFKA_EVENTS_TOPIC: ${KAFKA_EVENTS_TOPIC:-caryaar.events}
+  NOTIFICATION_ADMIN_EMAIL: ${NOTIFICATION_ADMIN_EMAIL:-}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USERNAME: ${SMTP_USERNAME:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-}
+  SMTP_USE_TLS: ${SMTP_USE_TLS:-true}
+  SMTP_USE_SSL: ${SMTP_USE_SSL:-false}
+  HF_TOKEN: ${HF_TOKEN:-}
+  HF_MODEL_ID: ${HF_MODEL_ID:-Qwen/Qwen2.5-7B-Instruct}
+  SEED_DUMMY_DATA: ${SEED_DUMMY_DATA:-false}
+
+x-backend-healthcheck: &backend-healthcheck
+  test:
+    - CMD
+    - python
+    - -c
+    - from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/health', timeout=2)
+  interval: 30s
+  timeout: 5s
+  retries: 3
+  start_period: 60s
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?Set MYSQL_DATABASE in the deployment .env file}
+      MYSQL_USER: ${MYSQL_USER:-caryaar}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the deployment .env file}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the deployment .env file}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping --host=127.0.0.1 --user=root --password="$${MYSQL_ROOT_PASSWORD}" --silent
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  kafka:
+    image: apache/kafka:3.9.1
+    restart: unless-stopped
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 30s
+
+  auth:
+    image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}-auth:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment: *backend-environment
+    healthcheck: *backend-healthcheck
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  cars:
+    image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}-cars:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      <<: *backend-environment
+      CAR_IMAGE_UPLOAD_DIR: /app/backend/car_service/uploads
+    volumes:
+      - car-uploads:/app/backend/car_service/uploads
+    healthcheck: *backend-healthcheck
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  feedback:
+    image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}-feedback:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment: *backend-environment
+    healthcheck: *backend-healthcheck
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  support:
+    image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}-support:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment: *backend-environment
+    healthcheck: *backend-healthcheck
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  notifications:
+    image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}-notifications:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment: *backend-environment
+    healthcheck: *backend-healthcheck
+    depends_on:
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  frontend:
+    image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX}-frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      AUTH_API_URL: http://auth:8000
+      CAR_API_URL: http://cars:8000
+      FEEDBACK_API_URL: http://feedback:8000
+      SUPPORT_API_URL: http://support:8000
+      NOTIFICATIONS_API_URL: http://notifications:8000
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - >-
+          fetch("http://127.0.0.1:3000/")
+          .then((response) => process.exit(response.ok ? 0 : 1))
+          .catch(() => process.exit(1))
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      auth:
+        condition: service_healthy
+      cars:
+        condition: service_healthy
+      feedback:
+        condition: service_healthy
+      support:
+        condition: service_healthy
+      notifications:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      frontend:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
+  kafka-data:
+  car-uploads:
+  caddy-data:
+  caddy-config:

@@ -38,6 +38,23 @@ button { color: inherit; }
 .header-nav a { color: #5c655f; font-size: 13px; font-weight: 550; text-decoration: none; transition: color 160ms ease; }
 .header-nav a:hover { color: var(--green); }
 .header-actions { gap: 12px; }
+.notification-center { position: relative; }
+.notification-trigger { height: 40px; padding: 0 12px; position: relative; }
+.notification-badge { align-items: center; background: var(--coral); border: 2px solid var(--background); border-radius: 999px; color: #fff; display: inline-flex; font-size: 9px; font-weight: 700; height: 18px; justify-content: center; min-width: 18px; padding: 0 4px; position: absolute; right: 2px; top: 1px; }
+.notification-panel { background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 14px 40px #193b301f; max-height: min(520px, calc(100vh - 100px)); overflow: auto; position: absolute; right: 0; top: calc(100% + 10px); width: min(360px, calc(100vw - 32px)); z-index: 30; }
+.notification-panel-header { align-items: center; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; padding: 15px 16px; }
+.notification-panel-header h2 { font-size: 14px; margin: 0; }
+.notification-panel-header span, .notification-item time { color: #778078; font-size: 10px; }
+.notification-list { list-style: none; margin: 0; padding: 0; }
+.notification-item { border-bottom: 1px solid #eff0eb; padding: 13px 16px; }
+.notification-item.unread { background: #f5f8f4; }
+.notification-item-heading { align-items: start; display: flex; gap: 10px; justify-content: space-between; }
+.notification-item h3 { font-size: 12px; line-height: 1.4; margin: 0; }
+.notification-item p { color: #667068; font-size: 11px; line-height: 1.5; margin: 7px 0; white-space: pre-wrap; }
+.notification-read-button { align-items: center; background: transparent; border: 1px solid var(--line); border-radius: 50%; color: var(--green); cursor: pointer; display: inline-flex; flex: 0 0 auto; height: 25px; justify-content: center; width: 25px; }
+.notification-read-button:hover { background: #e8eee8; }
+.notification-empty, .notification-error { color: #778078; font-size: 11px; line-height: 1.5; margin: 0; padding: 18px 16px; }
+.notification-error { color: #a63c2b; }
 .sign-in-button, .sell-button, .primary-button, .secondary-button, .search-button, .save-button, .filter-chip, .dialog-close { align-items: center; cursor: pointer; display: inline-flex; justify-content: center; transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease; }
 .sign-in-button, .sell-button { border: 0; border-radius: 6px; font-size: 12px; font-weight: 650; height: 40px; padding: 0 16px; }
 .sign-in-button { background: transparent; gap: 7px; }

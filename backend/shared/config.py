@@ -11,9 +11,21 @@ class Settings(BaseSettings):
     car_database_url: str | None = None
     feedback_database_url: str | None = None
     support_database_url: str | None = None
+    notification_database_url: str | None = None
     jwt_secret_key: str = Field(min_length=32)
     access_token_expire_minutes: int = 60
     frontend_origins: str = "http://localhost:3000"
+    kafka_bootstrap_servers: str = "localhost:29092"
+    kafka_events_topic: str = "caryaar.events"
+    kafka_notifications_group: str = "caryaar-notifications"
+    notification_admin_email: str | None = None
+    smtp_host: str | None = None
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_from_email: str | None = None
+    smtp_use_tls: bool = True
+    smtp_use_ssl: bool = False
     hf_token: str | None = None
     hf_model_id: str = "Qwen/Qwen2.5-7B-Instruct"
     seed_dummy_data: bool = True

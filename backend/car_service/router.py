@@ -13,6 +13,7 @@ from database import get_db
 from model import Car
 from schemas import CarImageResponse, CarInput, CarResponse, CarUpdate, Fuel
 from shared.config import get_settings
+from shared.events import enqueue_event
 from shared.security import get_current_user_id
 
 router = APIRouter(prefix="/api/v1/cars", tags=["cars"])
@@ -146,6 +147,17 @@ def create_car(
 ):
     car = Car(owner_id=user_id, **payload.model_dump(mode="json"))
     session.add(car)
+    session.flush()
+    enqueue_event(
+        session,
+        "car.listing_created",
+        {
+            "listing_id": str(car.id),
+            "owner_id": str(user_id),
+            "make": car.make,
+            "model": car.model,
+        },
+    )
     session.commit()
     session.refresh(car)
     return car
