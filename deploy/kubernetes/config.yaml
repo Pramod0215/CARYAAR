@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: caryaar-config
+data:
+  FRONTEND_ORIGINS: https://caryaar.example.com
+  KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  KAFKA_EVENTS_TOPIC: caryaar.events
+  NOTIFICATION_ADMIN_EMAIL: ""
+  SMTP_HOST: ""
+  SMTP_PORT: "587"
+  SMTP_USERNAME: ""
+  SMTP_FROM_EMAIL: ""
+  SMTP_USE_TLS: "true"
+  SMTP_USE_SSL: "false"
+  HF_MODEL_ID: Qwen/Qwen2.5-7B-Instruct
+  SEED_DUMMY_DATA: "false"

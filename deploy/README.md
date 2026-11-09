@@ -80,3 +80,70 @@ The stack publishes only Caddy's HTTP/HTTPS ports. MySQL, Kafka, and all APIs
 remain on the private Compose network. MySQL, Kafka, uploaded car images, and
 Caddy certificates use persistent Docker volumes; back up the database and
 uploads volume as part of the VPS recovery plan.
+
+## Kubernetes deployment
+
+The manifests in [`kubernetes/`](./kubernetes/) provide an alternative to the
+Compose deployment: five backend services, the frontend, single-node MySQL and
+Kafka, and persistent claims for database data, Kafka data, and car uploads.
+The existing GitHub Actions workflow continues to deploy Compose to the VPS;
+Kubernetes deployments are applied manually.
+
+The cluster must have a default `StorageClass` and support `LoadBalancer`
+services for automatic frontend exposure. The frontend service can still be
+accessed with `kubectl port-forward` on clusters without a load balancer; use an
+Ingress controller and TLS configuration separately when needed.
+
+Before deploying:
+
+1. Make sure the images from the GitHub Actions workflow have been published.
+   The manifests default to the `latest` tag; for a release, set every
+   `newTag` in `kubernetes/kustomization.yaml` to the same `sha-<commit>` tag.
+2. Set `FRONTEND_ORIGINS` in `kubernetes/config.yaml` to the browser-visible
+   origin for your deployment.
+3. Create the namespace and a private env file named `.env.kubernetes` with
+   the following keys. Generate distinct random values for the passwords and
+   JWT key; use a hex database password so it is safe in the database URL.
+   Keep this file out of source control.
+
+```dotenv
+mysql-database=caryaar
+mysql-user=caryaar
+mysql-password=<random-hex-database-password>
+mysql-root-password=<different-random-hex-root-password>
+database-url=mysql+pymysql://caryaar:<random-hex-database-password>@mysql:3306/caryaar?charset=utf8mb4
+jwt-secret-key=<random-secret-at-least-32-characters>
+```
+
+Add `hf-token` and `smtp-password` to the env file if those integrations are
+used. For production, provision the secret through your cluster's secret
+manager rather than keeping it in a local file.
+
+From the repository root, create the secret and deploy:
+
+```powershell
+kubectl create namespace caryaar
+kubectl create secret generic caryaar-secrets --namespace caryaar --from-env-file=.env.kubernetes
+kubectl apply -k deploy/kubernetes
+kubectl rollout status statefulset/mysql --namespace caryaar
+kubectl rollout status statefulset/kafka --namespace caryaar
+kubectl get pods,services --namespace caryaar
+```
+
+If GHCR packages are private, create and attach an image-pull secret before
+applying the manifests. Use a GitHub token with `read:packages` access; replace
+the placeholder securely and do not save the token in shell history:
+
+```powershell
+kubectl create secret docker-registry ghcr-pull --namespace caryaar --docker-server=ghcr.io --docker-username=YOUR_GITHUB_USERNAME --docker-password=YOUR_READ_PACKAGES_TOKEN
+kubectl patch serviceaccount default --namespace caryaar --type merge --patch '{"imagePullSecrets":[{"name":"ghcr-pull"}]}'
+```
+
+To access the frontend without a provisioned load balancer, run
+`kubectl port-forward service/frontend 3000:80 --namespace caryaar` and open
+`http://localhost:3000`.
+
+These manifests run MySQL and Kafka as single replicas; they are not
+high-availability configurations. Back up persistent data and use managed
+database and Kafka services or a production-grade operator for workloads that
+require high availability.

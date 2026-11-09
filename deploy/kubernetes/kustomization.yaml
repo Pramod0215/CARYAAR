@@ -1,0 +1,22 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: caryaar
+resources:
+  - namespace.yaml
+  - config.yaml
+  - services.yaml
+  - data.yaml
+  - applications.yaml
+images:
+  - name: ghcr.io/pramod0215/caryaar-auth
+    newTag: latest
+  - name: ghcr.io/pramod0215/caryaar-cars
+    newTag: latest
+  - name: ghcr.io/pramod0215/caryaar-feedback
+    newTag: latest
+  - name: ghcr.io/pramod0215/caryaar-support
+    newTag: latest
+  - name: ghcr.io/pramod0215/caryaar-notifications
+    newTag: latest
+  - name: ghcr.io/pramod0215/caryaar-frontend
+    newTag: latest
